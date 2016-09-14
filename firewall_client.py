@@ -1,29 +1,28 @@
 #!/usr/bin/python
+
 # marek.kuczynski
 # @marekq
 # www.marek.rocks
 
-import requests, sys
-
 # enter the API key provided by your API gateway
-k 	= {'x-api-key': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}
+k 		= {'x-api-key': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}
 
 # enter the URL used by your API gateway
-u	= 'https://xxxxxxxxxx.execute-api.eu-west-1.amazonaws.com'
-
-if len(sys.argv) != int(5):
-	ip 	= '127.0.0.1'
-	po	= '22'
-	du	= int('1')
-	pr	= 'tcp'
+u		= 'https://xxxxxxxxxx.execute-api.eu-west-1.amazonaws.com'
 
 
 ##### do not touch anything below this line #####
-else:
+
+
+import requests, sys
+
+if len(sys.argv) == int(5):
 	ip	= sys.argv[1]
 	po	= sys.argv[2]
-	du	= sys.argv[3]
-	pr	= sys.argv[4]
+	pr	= sys.argv[3]
+	du	= sys.argv[4]
+else:
+	ip = po = pr = du = ''
 
 
 def get_ip(ip):
@@ -31,26 +30,33 @@ def get_ip(ip):
         r               = requests.get('http://ipinfo.io/ip', timeout=5)
 
         if r.status_code == int(200):
-            cidr_ip     = r.text.strip()
+            return r.text.strip()
         else:
-            cidr_ip     = ''
+            return '127.0.0.1'
     else:
-        cidr_ip         = ip
+        return ip
 
-    return str(cidr_ip)
 
 def get_port(po):
-	return str(po)
+	if len(po) == 0:
+		return '22'
+	else:
+		return str(po)
+
 
 def get_dura(du):
-	d	= int(du) * int(60)
-	return str(d)
+	if len(du) != 0:
+		return str(du)
+	else:
+		return '10'
+
 
 def get_proto(pr):
 	if len(pr) == 0:
 		return 'tcp'
 	else:
-		return pr
+		return str(pr)
+
 
 def whitelist():
 	i	= get_ip(ip)

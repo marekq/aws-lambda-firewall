@@ -1,10 +1,17 @@
-import boto3, re, time
+#!/usr/bin/python
+
+# marek.kuczynski
+# @marekq
+# www.marek.rocks
 
 # set the bucketname where the security group log should be written to. If left blank, no log will be written. 
 bucketn     = 'lambdafirewall'  
 
 
 ##### do not touch anything below this line #####
+
+
+import boto3, re, time
 
 ec2id       = []
 ips         = []
@@ -13,6 +20,7 @@ delgr       = []
 sgs         = {}
 sgdi        = {}
 timd        = {}
+
 
 def get_fw_rules(s, glist, prnt):
     resu            = []
@@ -68,7 +76,7 @@ def get_fw_rules(s, glist, prnt):
             groid       = y[u'GroupId']
             desc        = y[u'Description']
             if re.search(' ', desc):
-                unixt   = desc.split(' ')[1]
+                unixt   = desc.split(' ')[2]
             
                 if re.search(r"\b\d{10}\b", unixt):
                     z       = int(time.time()) - int(unixt)
@@ -131,7 +139,7 @@ def get_secgroups(s, prnt):
             sgdi[groid]     = [frpt, topt, cid, grona, desc]
             timd[groid]     = desc
             
-            glist.append(cid+'_'+str(topt))
+            glist.append(cid+'/32_'+str(topt))
 
             if prnt == 'Y':
                 print z+'\n'
@@ -142,16 +150,27 @@ def get_secgroups(s, prnt):
 def create_sg(s, cidr_ip, port, dura, proto, glist):
     for iid in set(ec2id):
         name        = cidr_ip+'/32_' + str(port)
-        crea        = int(time.time())
-        expire      = crea + (60 * int(dura))
-        desc        = str(crea) + ' ' + str(expire) + ' ' + str(time.strftime("%d-%m-%Y_%H-%M"))
+        modi        = False
+
+        crea_u      = int(time.time())
+        crea_t      = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime(crea_u))
+        
+        expire_u    = crea_u + int(dura)
+        expire_t    = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime(expire_u))
+
+        desc        = str(crea_u) + ' ' + str(crea_t) + ' ' + str(expire_u) + ' ' + str(expire_t) 
 
         if name not in glist:
-            resp    = s.create_security_group(GroupName = name, Description = desc)
-            sgid    = resp.get(u'GroupId')
+            try:
+                resp    = s.create_security_group(GroupName = name, Description = desc)
+                sgid    = resp.get(u'GroupId')
             
-            s.authorize_security_group_ingress(GroupId = sgid, IpProtocol = proto, CidrIp = cidr_ip+'/32', FromPort = int(port), ToPort = int(port))
-            glist.append(name)
+                s.authorize_security_group_ingress(GroupId = sgid, IpProtocol = proto, CidrIp = cidr_ip+'/32', FromPort = int(port), ToPort = int(port))
+                glist.append(name)
+                modi    = True
+                
+            except Exception as e:
+                print 'ERROR: '+str(e)
 
         else:
             for k, v in sgdi.iteritems():
@@ -160,8 +179,9 @@ def create_sg(s, cidr_ip, port, dura, proto, glist):
 
         a           = sgs[iid]
 
-        a.append(sgid)
-        s.modify_instance_attribute(Groups = a, InstanceId = iid)
+        if modi:
+            a.append(sgid)
+            s.modify_instance_attribute(Groups = a, InstanceId = iid)
 
 
 def delete_sg(s, d):
@@ -182,14 +202,21 @@ def handler(event, context):
     s       = get_session('ec2')
     g       = get_secgroups(s, 'N')
     d, r    = get_fw_rules(s, g, 'N')
-
-    create_sg(s, event['ip'], event['port'], event['duration'], event['proto'], g)
+    
+    t1      = str(event['duration'])
+    t2      = int(event['duration']) * 60
+    
+    i       = event['ip']
+    p       = event['port']
+    o       = event['proto']
+    
+    create_sg(s, i, p, t2, o, g)
     delete_sg(s, d)
 
     g       = get_secgroups(s, 'Y')
     d, r    = get_fw_rules(s, g, 'Y')
     
-    t       = get_session('s3')
-    write_s3(t, '/tmp/index.htm', bucketn)
+    s       = get_session('s3')
+    write_s3(s, '/tmp/index.htm', bucketn)
     
-    return 'FIN: created security group for source '+event['ip']+' on port '+event['port']+' to IP\'s '+str(' '.join(ips))
+    return 'FIN: created security group for source IP '+i+' on port '+p+' for '+t1+' minutes to IP\'s '+str(', '.join(ips))

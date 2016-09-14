@@ -57,6 +57,7 @@ You should now see a new security group associated with all your EC2 instances;
 ![alt tag](https://raw.githubusercontent.com/marekq/aws-lambda-firewall/master/docs/5.png)
 
 
+The group nameof the security group describes the source IP address which is whitelisted. The description contains two types of timestamps; the first two values describe when the security group was created while the last two describe when the security group should be removed.  
 
 
 Screenshots
