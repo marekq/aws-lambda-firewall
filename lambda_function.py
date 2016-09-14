@@ -208,8 +208,6 @@ def handler(event, context):
     p       = event['port']
     o       = event['proto']
     
-    # create_sg(s, cidr_ip, port, dura, proto, glist):
-
     create_sg(s, i, p, t2, o, g)
     delete_sg(s, d)
 
