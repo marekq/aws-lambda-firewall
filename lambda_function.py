@@ -3,6 +3,7 @@ import boto3, re, time
 # set the bucketname where the security group log should be written to. If left blank, no log will be written. 
 bucketn     = 'lambdafirewall'  
 
+
 ##### do not touch anything below this line #####
 
 ec2id       = []
@@ -138,7 +139,7 @@ def get_secgroups(s, prnt):
     return glist
 
 
-def create_sg(s, cidr_ip, port, dura, glist):
+def create_sg(s, cidr_ip, port, dura, proto, glist):
     for iid in set(ec2id):
         name        = cidr_ip+'/32_' + str(port)
         crea        = int(time.time())

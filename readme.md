@@ -21,14 +21,14 @@ You need to install two things in order for the firewall to work;
 
 - Add the Lambda function to your account with handler "lambda_function.handler" and configure it with proper IAM permissions to run, see "lambda_function.py".
 - Set the correct bucket name in the lambda function to write logs to S3 - you can skip this by entering a blank bucket name. 
+
 - Create an API gateway and map the correct GET parameters to the Lambda function.
 - Create API keys for users in the API gateweay and deploy the gateway to production.
+
 - Next, create a trigger in CloudWatch so the Lambda function is called every 15 minutes to remove expired security groups. 
 - Configure a valid API key and the correct Lambda URL in "firewall_client.py" and distribute it to your users. 
 
-If all steps are completed, users can whitelist an IP address and port simply by running "firewall_client.py" with the correct parameters. If these are skipped, default values are used;
-
-  $ python firewall_client <ip-address-to-whitelist> <port-to-whitelist> <duration-in-minutes>
+Make sure to use CloudTrail logs if the Lambda function does not work - the print statements should help you debug.
 
 
 Usage
@@ -38,12 +38,33 @@ Usage
 - Rules are removed when the function is called by the API gateway or when a valid API call is received. 
 
 
+If all steps are completed, users can whitelist an IP address and port simply by running "firewall_client.py" with the correct parameters. If these are skipped, default values are used;
+
+![alt tag](https://raw.githubusercontent.com/marekq/aws-lambda-firewall/master/docs/4.png)
+
+
+You should now see a new security group associated with all your EC2 instances;
+
+![alt tag](https://raw.githubusercontent.com/marekq/aws-lambda-firewall/master/docs/5.png)
+
+
 Screenshots
 -----------
 
-Configure your API gateway as follows;
+Configure the body templates of your API gateway as follows;
 
 ![alt tag](https://raw.githubusercontent.com/marekq/aws-lambda-firewall/master/docs/2.png)
+
+```
+    {
+        "ip" : "$input.params('ip')",
+        "port" : "$input.params('port')",
+        "duration" : "$input.params('duration')",
+        "proto" : "$input.params('proto')"
+    }
+```
+
+Your API gateway method should look as follows;
 
 ![alt tag](https://raw.githubusercontent.com/marekq/aws-lambda-firewall/master/docs/3.png)
 
