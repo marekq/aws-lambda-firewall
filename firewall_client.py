@@ -10,7 +10,6 @@ k 		= {'x-api-key': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}
 # enter the URL used by your API gateway
 u		= 'https://xxxxxxxxxx.execute-api.eu-west-1.amazonaws.com'
 
-
 ##### do not touch anything below this line #####
 
 
@@ -19,8 +18,8 @@ import requests, sys
 if len(sys.argv) == int(5):
 	ip	= sys.argv[1]
 	po	= sys.argv[2]
-	pr	= sys.argv[3]
-	du	= sys.argv[4]
+	du	= sys.argv[3]
+	pr	= sys.argv[4]
 else:
 	ip = po = pr = du = ''
 

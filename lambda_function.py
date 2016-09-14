@@ -7,9 +7,7 @@
 # set the bucketname where the security group log should be written to. If left blank, no log will be written. 
 bucketn     = 'lambdafirewall'  
 
-
 ##### do not touch anything below this line #####
-
 
 import boto3, re, time
 
@@ -20,7 +18,6 @@ delgr       = []
 sgs         = {}
 sgdi        = {}
 timd        = {}
-
 
 def get_fw_rules(s, glist, prnt):
     resu            = []
@@ -75,6 +72,7 @@ def get_fw_rules(s, glist, prnt):
         for y in secg[u'SecurityGroups']:
             groid       = y[u'GroupId']
             desc        = y[u'Description']
+          
             if re.search(' ', desc):
                 unixt   = desc.split(' ')[2]
             
@@ -181,7 +179,7 @@ def create_sg(s, cidr_ip, port, dura, proto, glist):
 
         if modi:
             a.append(sgid)
-            s.modify_instance_attribute(Groups = a, InstanceId = iid)
+            s.modify_instance_attribute(Groups = str(a), InstanceId = iid)
 
 
 def delete_sg(s, d):
