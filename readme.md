@@ -9,6 +9,8 @@ Description
 
 The lambda firewall can be used in sensitive environments where you want to keep strict control over security groups. Users with a valid API gateway key can make a request to whitelist a IP address for a specific duration without the need for access to the console. After the security group expires, it is automatically detached from the EC2 instances and removed. You no longer need to add or remove security groups manually - this is especially useful for users with many different external breakout IP/s 
 
+![alt tag](https://raw.githubusercontent.com/marekq/aws-lambda-firewall/master/docs/1.png)
+
 Besides security group management, the lambda firewall will also write the state of security groups to an S3 folder so that it is possible to see the state of all security groups easily. This makes it very easy to review and check which ports are externally facing at any given time. 
 
 
@@ -38,6 +40,12 @@ Usage
 
 Screenshots
 -----------
+
+Configure your API gateway as follows;
+
+![alt tag](https://raw.githubusercontent.com/marekq/aws-lambda-firewall/master/docs/2.png)
+
+![alt tag](https://raw.githubusercontent.com/marekq/aws-lambda-firewall/master/docs/3.png)
 
 
 Contact
