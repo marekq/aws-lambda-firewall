@@ -1,17 +1,20 @@
 aws-lambda-firewall
 ===================
 
-Create temporary security groups on your EC2 instances through a simple API call. Audit your security groups easily by the use of automated reports written to S3. 
+Create temporary security groups on your EC2 instances through a simple API call. In addition, audit your security groups easily by the use of automated reports written to S3. 
 
 
 Description
 ------------
 
-The lambda firewall can be used in sensitive environments where you want to keep strict control over security groups. Users with a valid API gateway key can make a request to whitelist a IP address for a specific duration without the need for access to the console. After the security group expires, it is automatically detached from the EC2 instances and removed. You no longer need to add or remove security groups manually - this is especially useful for users with many different external breakout IP/s 
+The Lambda firewall can be used in sensitive environments where you want to keep strict control over security groups. Users with a valid API gateway key can make a request to whitelist a IP address for a specific duration without the need for access to the console. After the security group expires, it is automatically detached from the EC2 instances and removed. You no longer need to add or remove security groups manually, which is especially useful for users with many different  breakout IP addresses. 
+
+The steps how the Lambda firewall can be used are shown below; 
 
 ![alt tag](https://raw.githubusercontent.com/marekq/aws-lambda-firewall/master/docs/1.png)
 
-Besides security group management, the lambda firewall will also write the state of security groups to an S3 folder so that it is possible to see the state of all security groups easily. This makes it very easy to review and check which ports are externally facing at any given time. 
+
+Besides security group management, the Lambda firewall will also write the state of security groups to an S3 folder so that it is possible to see the state of all security groups easily. This makes it very easy to review and check which ports are externally facing at any given time. 
 
 
 Installation
@@ -28,7 +31,7 @@ You need to install two things in order for the firewall to work;
 - Next, create a trigger in CloudWatch so the Lambda function is called every 15 minutes to remove expired security groups. 
 - Configure a valid API key and the correct Lambda URL in "firewall_client.py" and distribute it to your users. 
 
-Make sure to use CloudTrail logs if the Lambda function does not work - the print statements should help you debug.
+Make sure to use and enable CloudWatch logs if the Lambda function does not work.
 
 
 Usage
