@@ -1,17 +1,17 @@
 #!/usr/bin/python
-
 # marek.kuczynski
 # @marekq
 # www.marek.rocks
+
+import requests, sys
 
 # enter the API key provided by your API gateway
 k 		= {'x-api-key': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'}
 
 # enter the URL used by your API gateway
-u		= 'https://xxxxxxxxxx.execute-api.eu-west-1.amazonaws.com'
+u		= 'https://xxxxxxxx.execute-api.eu-west-1.amazonaws.com'
 
 ##### do not touch anything below this line #####
-
 
 import requests, sys
 

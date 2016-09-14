@@ -47,7 +47,7 @@ def get_fw_rules(s, glist, prnt):
                         if prnt == 'Y':
                             a       = pubi, inst, desc, grona, sggr, str(topt), str(frpt), cidr
                             b       = ' '.join(a)
-                            resu.append(str(a))
+                            resu.append(str(b))
 
                 for z in range(len(x[u'Instances'][int(y)][u'SecurityGroups'])):
                     groid       = x[u'Instances'][int(y)][u'SecurityGroups'][int(z)][u'GroupId']
@@ -179,7 +179,7 @@ def create_sg(s, cidr_ip, port, dura, proto, glist):
 
         if modi:
             a.append(sgid)
-            s.modify_instance_attribute(Groups = str(a), InstanceId = iid)
+            s.modify_instance_attribute(Groups = a, InstanceId = iid)
 
 
 def delete_sg(s, d):
@@ -208,6 +208,8 @@ def handler(event, context):
     p       = event['port']
     o       = event['proto']
     
+    # create_sg(s, cidr_ip, port, dura, proto, glist):
+
     create_sg(s, i, p, t2, o, g)
     delete_sg(s, d)
 
