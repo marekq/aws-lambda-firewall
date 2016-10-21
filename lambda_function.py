@@ -5,7 +5,7 @@
 # www.marek.rocks
 
 # set the bucketname where the security group log should be written to. If left blank, no log will be written. 
-bucketn     = 'lambdafirewall'  
+bucketn     = 'lambda-firewall'  
 
 ##### do not touch anything below this line #####
 
@@ -18,6 +18,7 @@ delgr       = []
 sgs         = {}
 sgdi        = {}
 timd        = {}
+
 
 def get_fw_rules(s, glist, prnt):
     resu            = []
@@ -57,7 +58,7 @@ def get_fw_rules(s, glist, prnt):
                     else:
                         sgs[inst] = [groid]
     
-    f       = open('/tmp/index.htm', 'w')
+    f       = open('/tmp/index.txt', 'w')
     
     for x in resu:
         f.write(str(x).strip())
@@ -69,15 +70,17 @@ def get_fw_rules(s, glist, prnt):
     
     for x in set(ec2id):
         modi            = False
+        
         for y in secg[u'SecurityGroups']:
             groid       = y[u'GroupId']
             desc        = y[u'Description']
+            grona       = y[u'GroupName']
           
-            if re.search(' ', desc):
-                unixt   = desc.split(' ')[2]
+            if re.search('/32_', grona):
+                unixt   = desc.split(' ')[3]
             
                 if re.search(r"\b\d{10}\b", unixt):
-                    z       = int(time.time()) - int(unixt)
+                    z   = int(time.time()) - int(unixt)
                         
                     if z > int(0):
                         if groid in sgs[x]:
@@ -88,14 +91,14 @@ def get_fw_rules(s, glist, prnt):
                             
                         modi    = True
             
-                        print 'DEL: removing '+groid+' from '+x+', age '+str(z/60)+' minutes'
+                        print 'DEL: removing '+groid+', '+grona+' from '+x+', age '+str(z/60)+' minutes, '+desc
                     else:
-                        print 'DEL: keeping  '+groid+' from '+x+', age '+str(z/60)+' minutes'
+                        print 'DEL: keeping '+groid+', '+grona+' from '+x+', age '+str(z/60)+' minutes, '+desc
                 else:
-                    print 'DEL: keeping  '+groid+' from '+x+', age '+str(z/60)+' minutes'
+                    print 'DEL: keeping '+groid+', '+grona+' from '+x+', age '+str(z/60)+' minutes, '+desc
         
             else:
-                print 'DEL: keeping  '+groid+' from '+x
+                print 'DEL: keeping '+groid+', '+grona+' from '+x+' , '+desc
         
         if modi:
             s.modify_instance_attribute(Groups = sgs[x], InstanceId = x)
@@ -119,12 +122,12 @@ def get_secgroups(s, prnt):
         grona       = sg['GroupName']
         groid       = sg['GroupId']
 
-        print 'DESC:', desc, grona, groid
-
         if 'VpcId' in sg.keys():
             vpcid   = sg['VpcId']
         else:
             vpcid   = ''
+
+        print sg['IpPermissions']
 
         for ipp in sg['IpPermissions']:
             frpt    = ipp['FromPort']
@@ -186,35 +189,44 @@ def delete_sg(s, d):
     for x in d:
         try:
             s.delete_security_group(GroupName = x)
+        
         except Exception as e:
             print 'FAIL: failed deleting ', str(x), e
 
 
-def write_s3(s, filen, bucketn):
-    if len(bucketn) != 0:
-        t   = str(int(time.time()))+'.txt'
-        s.upload_file(filen, Bucket = bucketn, Key = t)
+def write_s3(s, filen, bucketn, k):
+    s.upload_file(filen, Bucket = bucketn, Key = k)
 
 
 def handler(event, context):
     s       = get_session('ec2')
     g       = get_secgroups(s, 'N')
     d, r    = get_fw_rules(s, g, 'N')
-    
-    t1      = str(event['duration'])
-    t2      = int(event['duration']) * 60
-    
-    i       = event['ip']
-    p       = event['port']
-    o       = event['proto']
-    
-    create_sg(s, i, p, t2, o, g)
     delete_sg(s, d)
 
+    a       = event.get('ip', 'False')
+    if a != 'False':
+        t1      = str(event['duration'])
+        t2      = int(event['duration']) * 60
+        
+        i       = event['ip']
+        p       = event['port']
+        o       = event['proto']
+        
+        print 'add groups '+str(g)
+        create_sg(s, i, p, t2, o, g)
+    
     g       = get_secgroups(s, 'Y')
     d, r    = get_fw_rules(s, g, 'Y')
-    
+
     s       = get_session('s3')
-    write_s3(s, '/tmp/index.htm', bucketn)
+    k       = str(int(time.time()))+'.txt'
+
+    write_s3(s, '/tmp/index.txt', bucketn, k)
+    write_s3(s, '/tmp/index.txt', bucketn, 'index.txt')
     
-    return 'FIN: created security group for source IP '+i+' on port '+p+' for '+t1+' minutes to IP\'s '+str(', '.join(ips))
+    if a != 'False':
+        return 'FIN: created security group for source IP '+i+' on port '+p+' for '+t1+' minutes to IP\'s '+', '.join(ips)
+    
+    else:  
+        return r
